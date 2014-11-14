@@ -881,17 +881,19 @@ angular.module('ui.grid')
     function rowHashMap(rows, keyField) {
       var map = {};
       rows.forEach(function (row) {
-        var value = row.entity[keyField];
-        map[value] = row;
+        var value = row[keyField];
+        map[value] = true;
       });
       return map;
     }
 
     function complement(old, newMap, keyField) {
       // If something exists in OLD but does not exist in NEW, it is deleted.
-      return old.filter(function (row) {
-        return !newMap[row.entity[keyField]];
+      var ret = old.filter(function (row) {
+        return newMap[row.entity[keyField]] === undefined;
       });
+      
+      return ret;
     }
   };
 
