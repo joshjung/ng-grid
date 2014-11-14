@@ -867,46 +867,33 @@ angular.module('ui.grid')
     return $q.all([p1, p2]);
   };
 
-    Grid.prototype.getDeletedRows = function(oldRows, newRows) {
-      var self = this,
-        olds = undefined,
-        rowKeyField = undefined;
+  Grid.prototype.getDeletedRows = function(oldRows, newRows) {
+    var self = this,
+      olds = undefined,
+      rowKeyField = self.options.rowKeyField || '$$hashKey';
 
-      // If options.rowKeyField is assigned, it is assumed that each row[options.rowKeyField]
-      // is completely unique and persistent for any identical row, similar to an id field in 
-      // a database table. If it isn't, things are going to be breaking bad.
-      if (rowKeyField = self.options.rowKeyField)
-      {
-        // O(n). One loop over new rows to build map. One loop over old rows to complement.
-        return complement(oldRows, rowHashMap(newRows, rowKeyField), rowKeyField);
-      }
-      else
-      {
-        olds = oldRows.filter(function (oldRow) {
-          return !newRows.some(function (newItem) {
-            return self.options.rowEquality(newItem, oldRow.entity);
-          });
-        });
-      }
+    // If options.rowKeyField is assigned, it is assumed that each row[options.rowKeyField]
+    // is completely unique and persistent for any identical row, similar to an id field in 
+    // a database table. If it isn't, things are going to be breaking bad.
+    // O(n). One loop over new rows to build map. One loop over old rows to complement.
+    return complement(oldRows, rowHashMap(newRows, rowKeyField), rowKeyField);
 
-      return olds;
+    function rowHashMap(rows, keyField) {
+      var map = {};
+      rows.forEach(function (row) {
+        var value = row.entity[keyField];
+        map[value] = row;
+      });
+      return map;
+    }
 
-      function rowHashMap(rows, keyField) {
-        var map = {};
-        rows.forEach(function (row) {
-          var value = row[keyField];
-          map[value] = row;
-        });
-        return map;
-      }
-
-      function complement(old, newMap, keyField) {
-        // If something exists in OLD but does not exist in NEW, it is deleted.
-        return old.filter(function (row) {
-          return !newMap[row[keyField]];
-        });
-      }
-    };
+    function complement(old, newMap, keyField) {
+      // If something exists in OLD but does not exist in NEW, it is deleted.
+      return old.filter(function (row) {
+        return !newMap[row.entity[keyField]];
+      });
+    }
+  };
 
   /**
    * Private Undocumented Method
